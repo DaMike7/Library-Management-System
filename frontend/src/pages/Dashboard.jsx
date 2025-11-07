@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Users, BookMarked, BarChart3, Plus, Edit2, Trash2, Search, X } from 'lucide-react';
+import { BookOpen, Users, BookMarked, BarChart3, Plus, Edit2, Trash2, Search, X, Menu } from 'lucide-react'; // Added Menu
 
 // Dummy Data
 const initialBooks = [
@@ -34,7 +34,7 @@ const initialBorrowedBooks = [
 ];
 
 // Sidebar Component
-const Sidebar = ({ activePage, setActivePage }) => {
+const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'books', label: 'Books', icon: BookOpen },
@@ -43,12 +43,23 @@ const Sidebar = ({ activePage, setActivePage }) => {
   ];
 
   return (
-    <div className="w-64 bg-indigo-900 text-white h-screen fixed left-0 top-0 overflow-y-auto">
-      <div className="p-6">
+    <div
+      className={`w-64 bg-indigo-900 text-white h-screen fixed left-0 top-0 overflow-y-auto z-30 transition-transform duration-300 ease-in-out transform ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0`}
+    >
+      <div className="p-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <BookOpen className="w-8 h-8" />
           Library System
         </h1>
+        {/* Mobile Close Button */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="md:hidden text-white hover:text-indigo-200"
+        >
+          <X className="w-6 h-6" />
+        </button>
       </div>
       <nav className="mt-6">
         {menuItems.map(item => {
@@ -56,7 +67,10 @@ const Sidebar = ({ activePage, setActivePage }) => {
           return (
             <button
               key={item.id}
-              onClick={() => setActivePage(item.id)}
+              onClick={() => {
+                setActivePage(item.id);
+                setSidebarOpen(false); // Close sidebar on selection (for mobile)
+              }}
               className={`w-full flex items-center gap-3 px-6 py-3 transition-colors ${
                 activePage === item.id ? 'bg-indigo-700 border-l-4 border-white' : 'hover:bg-indigo-800'
               }`}
@@ -85,6 +99,7 @@ const Dashboard = ({ books, members, borrowedBooks }) => {
     <div>
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Dashboard</h2>
       
+      {/* Stats Grid - Already responsive */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
@@ -127,6 +142,7 @@ const Dashboard = ({ books, members, borrowedBooks }) => {
         </div>
       </div>
 
+      {/* Recent/Popular Grid - Already responsive */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">Recent Borrowed Books</h3>
@@ -209,7 +225,8 @@ const BooksPage = ({ books, setBooks }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      {/* Header section - make flex-col on small screens */}
+      <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
         <h2 className="text-3xl font-bold text-gray-800">Books Management</h2>
         <button
           onClick={() => {
@@ -217,7 +234,7 @@ const BooksPage = ({ books, setBooks }) => {
             setEditingBook(null);
             setFormData({ title: '', author: '', isbn: '', description: '', totalCopies: 1, availableCopies: 1 });
           }}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
         >
           <Plus className="w-5 h-5" /> Add Book
         </button>
@@ -236,8 +253,9 @@ const BooksPage = ({ books, setBooks }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
+      {/* Table Wrapper - Added overflow-x-auto for mobile scrolling */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full min-w-[700px]"> {/* Added min-w to ensure table has width */}
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
@@ -250,10 +268,10 @@ const BooksPage = ({ books, setBooks }) => {
           <tbody className="divide-y divide-gray-200">
             {filteredBooks.map(book => (
               <tr key={book.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 max-w-xs"> {/* Added max-w for better wrapping */}
                   <div>
-                    <p className="font-semibold text-gray-800">{book.title}</p>
-                    <p className="text-sm text-gray-500">{book.description}</p>
+                    <p className="font-semibold text-gray-800 truncate">{book.title}</p>
+                    <p className="text-sm text-gray-500 truncate">{book.description}</p>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-gray-800">{book.author}</td>
@@ -279,8 +297,9 @@ const BooksPage = ({ books, setBooks }) => {
         </table>
       </div>
 
+      {/* Modal - Already responsive */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">{editingBook ? 'Edit Book' : 'Add Book'}</h3>
@@ -388,7 +407,7 @@ const MembersPage = ({ members, setMembers }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
         <h2 className="text-3xl font-bold text-gray-800">Members Management</h2>
         <button
           onClick={() => {
@@ -396,7 +415,7 @@ const MembersPage = ({ members, setMembers }) => {
             setEditingMember(null);
             setFormData({ name: '', email: '', phone: '', address: '', joinedDate: new Date().toISOString().split('T')[0] });
           }}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
         >
           <Plus className="w-5 h-5" /> Add Member
         </button>
@@ -415,8 +434,9 @@ const MembersPage = ({ members, setMembers }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
+      {/* Table Wrapper - Added overflow-x-auto for mobile scrolling */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full min-w-[700px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
@@ -429,10 +449,10 @@ const MembersPage = ({ members, setMembers }) => {
           <tbody className="divide-y divide-gray-200">
             {filteredMembers.map(member => (
               <tr key={member.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 max-w-xs">
                   <div>
-                    <p className="font-semibold text-gray-800">{member.name}</p>
-                    <p className="text-sm text-gray-500">{member.address}</p>
+                    <p className="font-semibold text-gray-800 truncate">{member.name}</p>
+                    <p className="text-sm text-gray-500 truncate">{member.address}</p>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-gray-800">{member.email}</td>
@@ -454,8 +474,9 @@ const MembersPage = ({ members, setMembers }) => {
         </table>
       </div>
 
+      {/* Modal - Already responsive */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">{editingMember ? 'Edit Member' : 'Add Member'}</h3>
@@ -524,6 +545,11 @@ const BorrowedBooksPage = ({ borrowedBooks, setBorrowedBooks, books, members }) 
     const book = books.find(b => b.id === formData.bookId);
     const member = members.find(m => m.id === formData.memberId);
     
+    if (!book || !member) {
+      // Simple validation, you might want to show an error
+      return;
+    }
+
     const newBorrow = {
       id: String(Date.now()),
       bookId: formData.bookId,
@@ -557,11 +583,11 @@ const BorrowedBooksPage = ({ borrowedBooks, setBorrowedBooks, books, members }) 
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
         <h2 className="text-3xl font-bold text-gray-800">Borrowed Books</h2>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700"
         >
           <Plus className="w-5 h-5" /> Borrow Book
         </button>
@@ -580,8 +606,9 @@ const BorrowedBooksPage = ({ borrowedBooks, setBorrowedBooks, books, members }) 
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
+      {/* Table Wrapper - Added overflow-x-auto for mobile scrolling */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Book Title</th>
@@ -637,8 +664,9 @@ const BorrowedBooksPage = ({ borrowedBooks, setBorrowedBooks, books, members }) 
         </table>
       </div>
 
+      {/* Modal - Already responsive */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Borrow Book</h3>
@@ -731,29 +759,58 @@ export default function LibraryManagementSystem() {
   const [books, setBooks] = useState(initialBooks);
   const [members, setMembers] = useState(initialMembers);
   const [borrowedBooks, setBorrowedBooks] = useState(initialBorrowedBooks);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // State for mobile sidebar
 
   return (
     <div className="flex bg-gray-100 min-h-screen">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} />
+      {/* Sidebar */}
+      <Sidebar 
+        activePage={activePage} 
+        setActivePage={setActivePage} 
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
       
-      <div className="ml-64 flex-1 p-8">
-        {activePage === 'dashboard' && (
-          <Dashboard books={books} members={members} borrowedBooks={borrowedBooks} />
-        )}
-        {activePage === 'books' && (
-          <BooksPage books={books} setBooks={setBooks} />
-        )}
-        {activePage === 'members' && (
-          <MembersPage members={members} setMembers={setMembers} />
-        )}
-        {activePage === 'borrowed' && (
-          <BorrowedBooksPage 
-            borrowedBooks={borrowedBooks} 
-            setBorrowedBooks={setBorrowedBooks}
-            books={books}
-            members={members}
-          />
-        )}
+      {/* Overlay for mobile */}
+      <div 
+        onClick={() => setSidebarOpen(false)} 
+        className={`fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden ${
+          sidebarOpen ? 'block' : 'hidden'
+        }`}
+      />
+
+      {/* Main Content Area */}
+      {/* Takes full width on mobile, has margin on desktop */}
+      <div className="flex-1 md:ml-64">
+        
+        {/* Mobile Header */}
+        <div className="md:hidden flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-10">
+          <h2 className="text-xl font-bold text-indigo-900">Library System</h2>
+          <button onClick={() => setSidebarOpen(true)}>
+            <Menu className="w-6 h-6 text-indigo-900" />
+          </button>
+        </div>
+
+        {/* Page Content */}
+        <div className="p-4 md:p-8">
+          {activePage === 'dashboard' && (
+            <Dashboard books={books} members={members} borrowedBooks={borrowedBooks} />
+          )}
+          {activePage === 'books' && (
+            <BooksPage books={books} setBooks={setBooks} />
+          )}
+          {activePage === 'members' && (
+            <MembersPage members={members} setMembers={setMembers} />
+          )}
+          {activePage === 'borrowed' && (
+            <BorrowedBooksPage 
+              borrowedBooks={borrowedBooks} 
+              setBorrowedBooks={setBorrowedBooks}
+              books={books}
+              members={members}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
